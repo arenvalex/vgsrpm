@@ -476,4 +476,31 @@ ${calculateReport(rows, "month")}`
 
 bot.launch();
 
+cron.schedule(
+  "* * * * *",
+  async () => {
+    try {
+      const rows = await getSheetData();
+
+      const report = calculateReport(rows, "today");
+
+      await bot.telegram.sendMessage(
+        -1004315396027,
+        `🧪 TEST RAPORU
+
+📅 ${new Date().toLocaleDateString("tr-TR")}
+
+${report}`
+      );
+
+      console.log("Test raporu gönderildi.");
+    } catch (err) {
+      console.error(err);
+    }
+  },
+  {
+    timezone: "Europe/Istanbul"
+  }
+);
+
 console.log("VGSPRM Bot Aktif");
