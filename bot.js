@@ -5,6 +5,18 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const userState = {};
 
+let currentId = 1;
+
+async function saveToSheet(data) {
+  try {
+    await axios.post(process.env.SCRIPT_URL, data);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
 function mainMenu() {
   return Markup.inlineKeyboard([
     [Markup.button.callback("🎰 VEGAS", "VEGAS")],
