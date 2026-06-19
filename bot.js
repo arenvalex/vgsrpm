@@ -5,6 +5,29 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const userState = {};
 
+const VEGAS_PROVIDERS = [
+  "Easy Pay 2",
+  "Fast Pay",
+  "Master Banka Havalesi",
+  "UltraPay Havale Fast",
+  "JorPay Banka Havalesi",
+  "Cryptobox",
+  "Şahin",
+  "Payhera Kredi Kartı",
+  "NextPay Kredi Kartı"
+];
+
+const PRIME_PROVIDERS = [
+  "Easy Havale",
+  "FastPay",
+  "Ödenet Havale",
+  "Cryptobox",
+  "NextPay Kredi Kartı",
+  "Kartal Havale",
+  "Payhera Kredi Kartı",
+  "Atlas Banka Havalesi",
+  "Paykolik Havale"
+];
 let currentId = 1;
 
 async function saveToSheet(data) {
@@ -62,6 +85,64 @@ bot.action("PRIME", async (ctx) => {
       [Markup.button.callback("🔙 Ana Menü", "ANA_MENU")]
     ])
   );
+});
+
+bot.action("VG_TESLIMAT", async (ctx) => {
+  const buttons = VEGAS_PROVIDERS.map(provider => [
+    Markup.button.callback(provider, `VGP_${provider}`)
+  ]);
+
+  buttons.push([
+    Markup.button.callback("🔙 Geri", "VEGAS")
+  ]);
+
+  await ctx.editMessageText(
+    "📦 VEGAS Teslimat Provider Seçiniz",
+    Markup.inlineKeyboard(buttons)
+  );
+});
+
+bot.action("PR_TESLIMAT", async (ctx) => {
+  const buttons = PRIME_PROVIDERS.map(provider => [
+    Markup.button.callback(provider, `PRP_${provider}`)
+  ]);
+
+  buttons.push([
+    Markup.button.callback("🔙 Geri", "PRIME")
+  ]);
+
+  await ctx.editMessageText(
+    "📦 PRIME Teslimat Provider Seçiniz",
+    Markup.inlineKeyboard(buttons)
+  );
+});
+
+VEGAS_PROVIDERS.forEach((provider) => {
+  bot.action(`VGP_${provider}`, async (ctx) => {
+    userState[ctx.from.id] = {
+      marka: "VEGAS",
+      islem: "TESLIMAT",
+      provider: provider
+    };
+
+    await ctx.reply(
+      `📦 ${provider}\n\n💰 Teslimat tutarını giriniz:`
+    );
+  });
+});
+
+PRIME_PROVIDERS.forEach((provider) => {
+  bot.action(`PRP_${provider}`, async (ctx) => {
+    userState[ctx.from.id] = {
+      marka: "PRIME",
+      islem: "TESLIMAT",
+      provider: provider
+    };
+
+    await ctx.reply(
+      `📦 ${provider}\n\n💰 Teslimat tutarını giriniz:`
+    );
+  });
 });
 
 bot.action("ANA_MENU", async (ctx) => {
