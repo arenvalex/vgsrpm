@@ -47,6 +47,20 @@ async function saveToSheet(data) {
     return false;
   }
 }
+
+async function getSheetData() {
+  try {
+    const response = await axios.get(
+      "https://script.google.com/macros/s/AKfycby4WRBI1RbfDfn1I1RETLNAZk3u6dNN__n07j90pnfUE1hvTbljjAATcu-lOjUgJl2wcw/exec"
+    );
+
+    return response.data.data || [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
 function mainMenu() {
   return Markup.inlineKeyboard([
     [Markup.button.callback("🎰 VEGAS", "VEGAS")],
@@ -288,6 +302,16 @@ Tutar: ${amount.toLocaleString("tr-TR")} TL`
     console.error(err);
     ctx.reply("❌ Hata oluştu.");
   }
+});
+
+bot.action("RAPOR_BUGUN", async (ctx) => {
+  const rows = await getSheetData();
+
+  await ctx.reply(
+    `📊 Bugün Raporu
+
+Toplam Kayıt: ${rows.length - 1}`
+  );
 });
 
 bot.launch();
