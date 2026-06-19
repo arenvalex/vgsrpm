@@ -152,6 +152,18 @@ bot.action("ANA_MENU", async (ctx) => {
   );
 });
 
+bot.action("RAPORLAR", async (ctx) => {
+  await ctx.editMessageText(
+    "📊 Raporlar",
+    Markup.inlineKeyboard([
+      [Markup.button.callback("📅 Bugün", "RAPOR_BUGUN")],
+      [Markup.button.callback("📅 Bu Hafta", "RAPOR_HAFTA")],
+      [Markup.button.callback("📅 Bu Ay", "RAPOR_AY")],
+      [Markup.button.callback("🔙 Ana Menü", "ANA_MENU")]
+    ])
+  );
+});
+
 bot.action("VG_YATIRIM", async (ctx) => {
   userState[ctx.from.id] = {
     marka: "VEGAS",
@@ -227,6 +239,55 @@ Tutar: ${amount.toLocaleString("tr-TR")} TL`
   );
 
   delete userState[ctx.from.id];
+});
+
+bot.command("ekle", async (ctx) => {
+  try {
+    const args = ctx.message.text.split(" ");
+
+    if (args.length < 3) {
+      return ctx.reply(
+        "Kullanım:\n/ekle Provider Tutar\n\nÖrnek:\n/ekle Şahin 500000"
+      );
+    }
+
+    const provider = args[1];
+
+    const amount = Number(
+      args[2].replace(/\./g, "").replace(",", ".")
+    );
+
+    if (isNaN(amount)) {
+      return ctx.reply("❌ Geçerli bir tutar giriniz.");
+    }
+
+    const payload = {
+      id: currentId++,
+      kullanici:
+        ctx.from.username ||
+        `${ctx.from.first_name || ""} ${ctx.from.last_name || ""}`.trim(),
+      marka: "TAKVIYE",
+      islemTipi: "TAKVIYE",
+      provider: provider,
+      tutar: amount
+    };
+
+    const saved = await saveToSheet(payload);
+
+    if (!saved) {
+      return ctx.reply("❌ Takviye kaydedilemedi.");
+    }
+
+    await ctx.reply(
+      `✅ Takviye Kaydedildi
+
+Provider: ${provider}
+Tutar: ${amount.toLocaleString("tr-TR")} TL`
+    );
+  } catch (err) {
+    console.error(err);
+    ctx.reply("❌ Hata oluştu.");
+  }
 });
 
 bot.launch();
