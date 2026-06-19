@@ -397,32 +397,80 @@ Tutar: ${amount.toLocaleString("tr-TR")} TL`
 bot.action("RAPOR_BUGUN", async (ctx) => {
   const rows = await getSheetData();
 
+  const today = new Date().toLocaleDateString("tr-TR");
+
   await ctx.reply(
-    `📊 Bugün Raporu\n${calculateReport(rows, "today")}`
+    `📊 Bugün Raporu
+📅 ${today}
+
+${calculateReport(rows, "today")}`
   );
 });
 
 bot.action("RAPOR_DUN", async (ctx) => {
   const rows = await getSheetData();
 
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
   await ctx.reply(
-    `📊 Dün Raporu\n${calculateReport(rows, "yesterday")}`
+    `📊 Dün Raporu
+📅 ${yesterday.toLocaleDateString("tr-TR")}
+
+${calculateReport(rows, "yesterday")}`
   );
 });
 
 bot.action("RAPOR_HAFTA", async (ctx) => {
   const rows = await getSheetData();
 
+  const now = new Date();
+
+  const monday = new Date(now);
+  const day = monday.getDay();
+  const diff = day === 0 ? 6 : day - 1;
+
+  monday.setDate(monday.getDate() - diff);
+
+  const sunday = new Date(monday);
+  sunday.setDate(sunday.getDate() + 6);
+
+  const startDate = monday.toLocaleDateString("tr-TR");
+  const endDate = sunday.toLocaleDateString("tr-TR");
+
   await ctx.reply(
-    `📊 Bu Hafta\n${calculateReport(rows, "week")}`
+    `📊 Bu Hafta
+📅 ${startDate} - ${endDate}
+
+${calculateReport(rows, "week")}`
   );
 });
 
 bot.action("RAPOR_AY", async (ctx) => {
   const rows = await getSheetData();
 
+  const now = new Date();
+
+  const aylar = [
+    "Ocak",
+    "Şubat",
+    "Mart",
+    "Nisan",
+    "Mayıs",
+    "Haziran",
+    "Temmuz",
+    "Ağustos",
+    "Eylül",
+    "Ekim",
+    "Kasım",
+    "Aralık"
+  ];
+
   await ctx.reply(
-    `📊 Bu Ay\n${calculateReport(rows, "month")}`
+    `📊 Bu Ay
+📅 ${aylar[now.getMonth()]} ${now.getFullYear()}
+
+${calculateReport(rows, "month")}`
   );
 });
 
