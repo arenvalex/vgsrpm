@@ -1,4 +1,5 @@
 const { Telegraf, Markup } = require("telegraf");
+const axios = require("axios");
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -85,6 +86,47 @@ bot.action("PR_CEKIM", async (ctx) => {
   };
 
   await ctx.reply("💸 PRIME Crypto Çekim tutarını giriniz:");
+});
+
+bot.on("text", async (ctx) => {
+  const state = userState[ctx.from.id];
+
+  if (!state) return;
+
+  const amount = Number(
+    ctx.message.text.replace(/\./g, "").replace(",", ".")
+  );
+
+  if (isNaN(amount)) {
+    return ctx.reply("❌ Geçerli bir tutar giriniz.");
+  }
+
+  const payload = {
+    id: currentId++,
+    kullanici:
+      ctx.from.username ||
+      `${ctx.from.first_name || ""} ${ctx.from.last_name || ""}`.trim(),
+    marka: state.marka,
+    islemTipi: state.islem,
+    provider: state.provider || "-",
+    tutar: amount
+  };
+
+  const saved = await saveToSheet(payload);
+
+  if (!saved) {
+    return ctx.reply("❌ Kayıt sırasında hata oluştu.");
+  }
+
+  await ctx.reply(
+    `✅ Kayıt Edildi
+
+Marka: ${state.marka}
+İşlem: ${state.islem}
+Tutar: ${amount.toLocaleString("tr-TR")} TL`
+  );
+
+  delete userState[ctx.from.id];
 });
 
 bot.launch();
