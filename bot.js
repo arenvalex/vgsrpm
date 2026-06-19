@@ -9,14 +9,21 @@ let currentId = 1;
 
 async function saveToSheet(data) {
   try {
-    await axios.post(process.env.SCRIPT_URL, data);
+    const result = await axios.post(
+      "https://script.google.com/macros/s/AKfycby4WRBI1RbfDfn1I1RETLNAZk3u6dNN__n07j90pnfUE1hvTbljjAATcu-lOjUgJl2wcw/exec",
+      data
+    );
+
+    console.log("SHEET OK:", result.data);
+
     return true;
   } catch (error) {
-    console.error(error);
+    console.log("SHEET ERROR:");
+    console.log(error.response?.data || error.message);
+
     return false;
   }
 }
-
 function mainMenu() {
   return Markup.inlineKeyboard([
     [Markup.button.callback("🎰 VEGAS", "VEGAS")],
