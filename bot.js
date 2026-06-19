@@ -61,6 +61,95 @@ async function getSheetData() {
   }
 }
 
+function calculateReport(rows, type) {
+  let vegasYatirim = 0;
+  let vegasCekim = 0;
+  let vegasTeslimat = 0;
+
+  let primeYatirim = 0;
+  let primeCekim = 0;
+  let primeTeslimat = 0;
+
+  const now = new Date();
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+
+    const rowDate = new Date(row[1]);
+
+    let include = false;
+
+    if (type === "today") {
+      include =
+        rowDate.getFullYear() === now.getFullYear() &&
+        rowDate.getMonth() === now.getMonth() &&
+        rowDate.getDate() === now.getDate();
+    }
+
+    if (type === "yesterday") {
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      include =
+        rowDate.getFullYear() === yesterday.getFullYear() &&
+        rowDate.getMonth() === yesterday.getMonth() &&
+        rowDate.getDate() === yesterday.getDate();
+    }
+
+    if (type === "week") {
+      const monday = new Date(now);
+
+      const day = monday.getDay();
+      const diff = day === 0 ? 6 : day - 1;
+
+      monday.setDate(monday.getDate() - diff);
+      monday.setHours(0, 0, 0, 0);
+
+      include = rowDate >= monday;
+    }
+
+    if (type === "month") {
+      const firstDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+      );
+
+      include = rowDate >= firstDay;
+    }
+
+    if (!include) continue;
+
+    const marka = row[3];
+    const islem = row[4];
+    const tutar = Number(row[6]) || 0;
+
+    if (marka === "VEGAS") {
+      if (islem === "CRYPTO_YATIRIM") vegasYatirim += tutar;
+      if (islem === "CRYPTO_CEKIM") vegasCekim += tutar;
+      if (islem === "TESLIMAT") vegasTeslimat += tutar;
+    }
+
+    if (marka === "PRIME") {
+      if (islem === "CRYPTO_YATIRIM") primeYatirim += tutar;
+      if (islem === "CRYPTO_CEKIM") primeCekim += tutar;
+      if (islem === "TESLIMAT") primeTeslimat += tutar;
+    }
+  }
+
+  return `
+🎰 VEGAS
+💰 Yatırım: ${vegasYatirim.toLocaleString("tr-TR")} TL
+💸 Çekim: ${vegasCekim.toLocaleString("tr-TR")} TL
+📦 Teslimat: ${vegasTeslimat.toLocaleString("tr-TR")} TL
+
+👑 PRIME
+💰 Yatırım: ${primeYatirim.toLocaleString("tr-TR")} TL
+💸 Çekim: ${primeCekim.toLocaleString("tr-TR")} TL
+📦 Teslimat: ${primeTeslimat.toLocaleString("tr-TR")} TL
+`;
+}
+
 function mainMenu() {
   return Markup.inlineKeyboard([
     [Markup.button.callback("🎰 VEGAS", "VEGAS")],
@@ -171,6 +260,7 @@ bot.action("RAPORLAR", async (ctx) => {
     "📊 Raporlar",
     Markup.inlineKeyboard([
       [Markup.button.callback("📅 Bugün", "RAPOR_BUGUN")],
+      [Markup.button.callback("📅 Dün", "RAPOR_DUN")],
       [Markup.button.callback("📅 Bu Hafta", "RAPOR_HAFTA")],
       [Markup.button.callback("📅 Bu Ay", "RAPOR_AY")],
       [Markup.button.callback("🔙 Ana Menü", "ANA_MENU")]
@@ -307,46 +397,32 @@ Tutar: ${amount.toLocaleString("tr-TR")} TL`
 bot.action("RAPOR_BUGUN", async (ctx) => {
   const rows = await getSheetData();
 
-  let vegasYatirim = 0;
-  let vegasCekim = 0;
-  let vegasTeslimat = 0;
+  await ctx.reply(
+    `📊 Bugün Raporu\n${calculateReport(rows, "today")}`
+  );
+});
 
-  let primeYatirim = 0;
-  let primeCekim = 0;
-  let primeTeslimat = 0;
-
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-
-    const marka = row[3];
-    const islem = row[4];
-    const tutar = Number(row[6]) || 0;
-
-    if (marka === "VEGAS") {
-      if (islem === "CRYPTO_YATIRIM") vegasYatirim += tutar;
-      if (islem === "CRYPTO_CEKIM") vegasCekim += tutar;
-      if (islem === "TESLIMAT") vegasTeslimat += tutar;
-    }
-
-    if (marka === "PRIME") {
-      if (islem === "CRYPTO_YATIRIM") primeYatirim += tutar;
-      if (islem === "CRYPTO_CEKIM") primeCekim += tutar;
-      if (islem === "TESLIMAT") primeTeslimat += tutar;
-    }
-  }
+bot.action("RAPOR_DUN", async (ctx) => {
+  const rows = await getSheetData();
 
   await ctx.reply(
-`📊 Bugün Raporu
+    `📊 Dün Raporu\n${calculateReport(rows, "yesterday")}`
+  );
+});
 
-🎰 VEGAS
-💰 Yatırım: ${vegasYatirim.toLocaleString("tr-TR")} TL
-💸 Çekim: ${vegasCekim.toLocaleString("tr-TR")} TL
-📦 Teslimat: ${vegasTeslimat.toLocaleString("tr-TR")} TL
+bot.action("RAPOR_HAFTA", async (ctx) => {
+  const rows = await getSheetData();
 
-👑 PRIME
-💰 Yatırım: ${primeYatirim.toLocaleString("tr-TR")} TL
-💸 Çekim: ${primeCekim.toLocaleString("tr-TR")} TL
-📦 Teslimat: ${primeTeslimat.toLocaleString("tr-TR")} TL`
+  await ctx.reply(
+    `📊 Bu Hafta\n${calculateReport(rows, "week")}`
+  );
+});
+
+bot.action("RAPOR_AY", async (ctx) => {
+  const rows = await getSheetData();
+
+  await ctx.reply(
+    `📊 Bu Ay\n${calculateReport(rows, "month")}`
   );
 });
 
