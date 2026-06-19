@@ -307,13 +307,46 @@ Tutar: ${amount.toLocaleString("tr-TR")} TL`
 bot.action("RAPOR_BUGUN", async (ctx) => {
   const rows = await getSheetData();
 
-  console.log("SHEET DATA:");
-  console.log(rows);
+  let vegasYatirim = 0;
+  let vegasCekim = 0;
+  let vegasTeslimat = 0;
+
+  let primeYatirim = 0;
+  let primeCekim = 0;
+  let primeTeslimat = 0;
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+
+    const marka = row[3];
+    const islem = row[4];
+    const tutar = Number(row[6]) || 0;
+
+    if (marka === "VEGAS") {
+      if (islem === "CRYPTO_YATIRIM") vegasYatirim += tutar;
+      if (islem === "CRYPTO_CEKIM") vegasCekim += tutar;
+      if (islem === "TESLIMAT") vegasTeslimat += tutar;
+    }
+
+    if (marka === "PRIME") {
+      if (islem === "CRYPTO_YATIRIM") primeYatirim += tutar;
+      if (islem === "CRYPTO_CEKIM") primeCekim += tutar;
+      if (islem === "TESLIMAT") primeTeslimat += tutar;
+    }
+  }
 
   await ctx.reply(
-    `📊 Bugün Raporu
+`📊 Bugün Raporu
 
-Toplam Kayıt: ${rows.length - 1}`
+🎰 VEGAS
+💰 Yatırım: ${vegasYatirim.toLocaleString("tr-TR")} TL
+💸 Çekim: ${vegasCekim.toLocaleString("tr-TR")} TL
+📦 Teslimat: ${vegasTeslimat.toLocaleString("tr-TR")} TL
+
+👑 PRIME
+💰 Yatırım: ${primeYatirim.toLocaleString("tr-TR")} TL
+💸 Çekim: ${primeCekim.toLocaleString("tr-TR")} TL
+📦 Teslimat: ${primeTeslimat.toLocaleString("tr-TR")} TL`
   );
 });
 
