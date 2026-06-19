@@ -307,6 +307,9 @@ Tutar: ${amount.toLocaleString("tr-TR")} TL`
 bot.action("RAPOR_BUGUN", async (ctx) => {
   const rows = await getSheetData();
 
+  console.log("SHEET DATA:");
+  console.log(rows);
+
   await ctx.reply(
     `📊 Bugün Raporu
 
