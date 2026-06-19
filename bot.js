@@ -478,7 +478,7 @@ ${calculateReport(rows, "month")}`
 bot.launch();
 
 cron.schedule(
-  "* * * * *",
+  "55 23 * * *",
   async () => {
     try {
       const rows = await getSheetData();
